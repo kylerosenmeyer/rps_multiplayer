@@ -1,0 +1,18 @@
+body {
+    text-align: center;
+    font-family: 'Anton', sans-serif;
+}
+
+.jumbotron, .jumbotron-fluid {
+    background-image: url("../images/linedpaper_@2x.png")
+}
+
+.col-6 {
+    margin: 5% auto;
+    border: 2px solid darkgrey;
+}
+
+.player {
+    padding: 100px;
+}
+
