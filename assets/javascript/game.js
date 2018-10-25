@@ -32,122 +32,167 @@ var config = {
   firebase.initializeApp(config);
 
 //*Initial Variable Setup
-  var database = firebase.database(),
-      userName = "",
-      rpsChoice = "",
-      gameCount = 0,
-      enemyPlayer = "",
-      playerScore = 0,
-      enemyScore = 0
+var database = firebase.database(),
+    userName = "",
+    rpsChoice = "",
+    gameCount = 0,
+    enemyPlayer = "",
+    playerScore = 0,
+    enemyScore = 0,
+    playerChoice = "",
+    enemyChoice = ""
 
-  //When a user name is entered, create a directory for that user with the property RPS Choice.
+//When a user name is entered, create a directory for that user with the property RPS Choice.
 
-  $("#nameInput").keyup( function() {
+$("#nameInput").keyup( function() {
+  
+  if ( event.keyCode === 13 ) {
+
+    userName = $("#nameInput").val().trim()
+  
+    //This is the user Creation
+    database.ref("users/" + userName).set({
+      userName: userName,
+      rpsChoice: rpsChoice
+    })
+
+    database.ref("users/").once("value", function(snap) {
+
+      snap.forEach(function(child) {
+
+        var opponent = child.val().userName,
+            oppAdd = "<button class=\"chooseOpponent\" data-name=\"" + opponent + "\">" + opponent + "</button>"
+
+        if ( opponent !== userName) {
+          console.log("list of opponents: ", opponent)
+          $("#opponentList").prepend(oppAdd)
+        }
+        
+
+      })
+    })
+
+    database.ref("users/" + userName).once("value", function(snap) {
+
+      $("#yourPlayer").prepend(snap.val().userName)
+
+    })
+  }
+})
+
+
+
+$("body").on("click", ".chooseOpponent", function() {
+
+  console.log(this)
+  enemyPlayer = $(this).attr("data-name")
+  console.log("enemyPlayer: ", enemyPlayer)
+
+  $(".chooseOpponent").off()
+
+  $("#player1box").prepend("<button class=\"chooseRPS\" data-name=\"Rock\" id=\"rock\"> Rock </button>")
+  $("#player1box").prepend("<button class=\"chooseRPS\" data-name=\"Paper\"  id=\"rock\"> Paper </button>")
+  $("#player1box").prepend("<button class=\"chooseRPS\" data-name=\"Scissors\"  id=\"rock\"> Scissors </button>")
+  $("#player1box").prepend("<button class=\"playRPS\" data-name=\"Play\"  id=\"play\"> Play! </button>")
+
+  playRPS()
+
+})
+
+function resetChoice() {
+  database.ref("users/" + userName + "/rpsChoice").set({
+    rpsChoice: ""
+  })
+
+  database.ref("users/" + enemyPlayer + "/rpsChoice").set({
+    rpsChoice: ""
+  })
+}
+
+function gameLogic() {
+  
+  console.log("Round: " + gameCount)
+  console.log("enemyChoice: ", enemyChoice)
+  console.log("playerChoice: ", playerChoice)
+
+  if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Paper" ) ) {
+    enemyScore++
+    console.log("enemyScore: ", enemyScore)
+    console.log("playerScore: ", playerScore)
+  } else if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Scissors") ) {
+    playerScore++
+    console.log("enemyScore: ", enemyScore)
+    console.log("playerScore: ", playerScore)
+  } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Rock" ) ) {
+    playerScore++
+    console.log("enemyScore: ", enemyScore)
+    console.log("playerScore: ", playerScore)
+  } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Scissors") ) {
+    enemyScore++
+    console.log("enemyScore: ", enemyScore)
+    console.log("playerScore: ", playerScore)
+  } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Rock" ) ) {
+    enemyScore++
+    console.log("enemyScore: ", enemyScore)
+    console.log("playerScore: ", playerScore)
+  } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Paper" ) ) {
+    playerScore++
+    console.log("enemyScore: ", enemyScore)
+    console.log("playerScore: ", playerScore)
+  } else if ( playerChoice === enemyChoice ) {
+    console.log("Draw!")
+    console.log("enemyScore: ", enemyScore)
+    console.log("playerScore: ", playerScore)
+  }
+}
+  
+function playRPS() {
+
+  console.log("lets play!")
     
-    if ( event.keyCode === 13 ) {
+    $(".chooseRPS").click( function() {
 
-      userName = $("#nameInput").val().trim()
-    
-      //This is the user Creation
+      
+      playerChoice = $(this).attr("data-name")
+      console.log("playerChoice: ", playerChoice)
       database.ref("users/" + userName).set({
         userName: userName,
-        rpsChoice: rpsChoice
+        rpsChoice: playerChoice
       })
+    })
 
-      database.ref("users/").once("value", function(snap) {
+    database.ref("users/" + enemyPlayer).on("child_changed", function(snap) {
 
-        snap.forEach(function(child) {
+      enemyChoice = snap.val()
+      console.log("eChoice: ", snap.val())
+    
+    })
 
-          var opponent = child.val().userName,
-              oppAdd = "<button class=\"chooseOpponent\" data-name=\"" + opponent + "\">" + opponent + "</button>"
+    $("body").on("click", "#play", function() {
 
-          if ( opponent !== userName) {
-            console.log("list of opponents: ", opponent)
-            $("#opponentList").prepend(oppAdd)
-          }
+      if ( gameCount < 6 ) {
+
+        gameCount++
+
+        if ( ( enemyChoice !== "") && ( playerChoice !== "" ) ) {
           
+          gameLogic()
+          resetChoice()
+        } else {
+          console.log("game not ready")
+        }
 
-        })
-      })
-
-      database.ref("users/" + userName).once("value", function(snap) {
-
-        $("#yourPlayer").prepend(snap.val().userName)
-
-      })
-    }
-  })
-
-
-
-  $("body").on("click", ".chooseOpponent", function() {
-
-    console.log(this)
-    enemyPlayer = $(this).attr("data-name")
-    console.log("enemyPlayer: ", enemyPlayer)
-
-    $(".chooseOpponent").off()
-    playRPS()
-
-  })
-
-  function playRPS() {
-
-    if ( gameCount < 5 ) {
+      } else {
+        console.log("game over!")
+      }
       
-      gameCount++
-
-      $("#player1box").prepend("<button class=\"chooseRPS\" data-name=\"Rock\" id=\"rock\"> Rock </button>")
-      $("#player1box").prepend("<button class=\"chooseRPS\" data-name=\"Paper\"  id=\"rock\"> Paper </button>")
-      $("#player1box").prepend("<button class=\"chooseRPS\" data-name=\"Scissors\"  id=\"rock\"> Scissors </button>")
-
-      $(".chooseRPS").click( function() {
-
-        $(".chooseRPS").off()
-        var playerChoice = $(this).attr("data-name")
-        console.log("playerChoice: ", playerChoice)
-        database.ref("users/" + userName).set({
-          userName: userName,
-          rpsChoice: playerChoice
-        })
-
-        database.ref("users/" + enemyPlayer).once("child_changed", function(snap) {
-
-          if ( snap.val().rpsChoice !== "" ) {
-            var enemyChoice = snap.val().rpsChoice
-            console.log("enemyChoice: ", enemyChoice)
-
-            if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Paper" ) ) {
-              enemyScore++
-              console.log("enemyScore: ", enemyScore)
-              console.log("playerScore: ", playerScore)
-            } else if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Scissors") ) {
-              playerScore++
-              console.log("enemyScore: ", enemyScore)
-              console.log("playerScore: ", playerScore)
-            } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Rock" ) ) {
-              playerScore++
-              console.log("enemyScore: ", enemyScore)
-              console.log("playerScore: ", playerScore)
-            } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Scissors") ) {
-              enemyScore++
-              console.log("enemyScore: ", enemyScore)
-              console.log("playerScore: ", playerScore)
-            } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Rock" ) ) {
-              enemyScore++
-              console.log("enemyScore: ", enemyScore)
-              console.log("playerScore: ", playerScore)
-            } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Paper" ) ) {
-              playerScore++
-              console.log("enemyScore: ", enemyScore)
-              console.log("playerScore: ", playerScore)
-            } else if ( playerChoice === enemyChoice ) {
-              console.log("Draw!")
-              console.log("enemyScore: ", enemyScore)
-              console.log("playerScore: ", playerScore)
-            }
-          }
-        })
-      })
-    }
+    })
   }
+
+
+
+
+
+
+
+
