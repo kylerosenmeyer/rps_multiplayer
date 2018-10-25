@@ -16,3 +16,14 @@ body {
     padding: 100px;
 }
 
+.chooseOpponent {
+    display: block;
+    padding: 10px;
+    margin: 5px auto;
+}
+
+.chooseRPS {
+    display: block;
+    padding: 10px;
+    margin: 5px auto;
+}
