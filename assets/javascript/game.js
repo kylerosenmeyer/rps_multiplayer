@@ -40,7 +40,9 @@ var database = firebase.database(),
     playerScore = 0,
     enemyScore = 0,
     playerChoice = "",
-    enemyChoice = ""
+    enemyChoice = "",
+    playerReady = false,
+    enemyReady = false
 
 //When a user name is entered, create a directory for that user with the property RPS Choice.
 
@@ -53,7 +55,8 @@ $("#nameInput").keyup( function() {
     //This is the user Creation
     database.ref("users/" + userName).set({
       userName: userName,
-      rpsChoice: rpsChoice
+      rpsChoice: rpsChoice,
+      playerReady: playerReady
     })
 
     database.ref("users/").once("value", function(snap) {
@@ -100,12 +103,15 @@ $("body").on("click", ".chooseOpponent", function() {
 })
 
 function resetChoice() {
-  database.ref("users/" + userName + "/rpsChoice").set({
-    rpsChoice: ""
+  database.ref("users/" + userName).update({
+    rpsChoice: "",
+    playerReady: false
+
   })
 
-  database.ref("users/" + enemyPlayer + "/rpsChoice").set({
-    rpsChoice: ""
+  database.ref("users/" + enemyPlayer).update({
+    rpsChoice: "",
+    playerReady: false
   })
 }
 
@@ -155,8 +161,7 @@ function playRPS() {
       
       playerChoice = $(this).attr("data-name")
       console.log("playerChoice: ", playerChoice)
-      database.ref("users/" + userName).set({
-        userName: userName,
+      database.ref("users/" + userName).update({
         rpsChoice: playerChoice
       })
     })
@@ -170,12 +175,27 @@ function playRPS() {
 
     $("body").on("click", "#play", function() {
 
+      database.ref("users/" + userName).update({
+        playerReady: true
+      })
+
+      database.ref("users/" + userName).once("value", function(snap) {
+
+        console.log(snap.val().playerReady)
+        playerReady = snap.val().playerReady
+      })
+
+      database.ref("users/" + enemyPlayer).once("value", function(snap) {
+
+        console.log(snap.val().playerReady)
+        enemyReady = snap.val().playerReady
+      })
+
       if ( gameCount < 6 ) {
 
-        gameCount++
-
-        if ( ( enemyChoice !== "") && ( playerChoice !== "" ) ) {
+        if ( ( playerReady == true ) && ( enemyReady == true ) ) {
           
+          gameCount++
           gameLogic()
           resetChoice()
         } else {
