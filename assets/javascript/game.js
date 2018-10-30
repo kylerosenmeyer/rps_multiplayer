@@ -61,7 +61,8 @@ $("#nameInput").keyup( function() {
       userName: userName,
       rpsChoice: rpsChoice,
       playerReady: playerReady,
-      pushedPlay: false
+      pushedPlay: false,
+      gameScore: 0
     })
 
     database.ref("users/" + userName).once("value", function(snap) {
@@ -88,7 +89,8 @@ $(".next").click( function() {
       userName: userName,
       rpsChoice: rpsChoice,
       playerReady: playerReady,
-      pushedPlay: false
+      pushedPlay: false,
+      gameScore: 0
     })
 
     database.ref("users/" + userName).once("value", function(snap) {
@@ -171,11 +173,13 @@ function playRPS() {
 function resetChoice() {
   database.ref("users/" + userName).update({
     rpsChoice: "",
-    playerReady: false
+    playerReady: false,
+    pushedPlay: false
   })
 
   playerChoice = ""
   playerReady = ""
+  pushedPlay = ""
   console.log("player reset complete")
   console.log("ready for next round")
 }
@@ -208,6 +212,11 @@ $("body").on("click", "#submitRPS", function() {
 
 //*This is the function that checks whether both the player and the opponent have submitted and are ready.
 $("body").on("click", "#play", function() {
+
+  pushedPlay = true
+  database.ref("users/" + userName).update({
+    pushedPlay: true
+  })
 
   database.ref("users/" + enemyPlayer).once("value", function(snap) {
 
@@ -250,7 +259,20 @@ $("body").on("click", "#play", function() {
 
 //*Game Logic is the main brain of the game. This runs after all conditions for play have been verified.
 function gameLogic() {
+
+  function getResults() {
+    database.ref("users/" + userName).once("value", function(snap) {
+      playerChoice = snap.val().rpsChoice
+      playerScore = snap.val().gameScore
+    })
+
+    database.ref("users/" + enemyPlayer).once("value", function(snap) {
+      enemyChoice = snap.val().rpsChoice
+      enemyScore = snap.val().gameScore
+    })
+  }
   
+  getResults()
   console.log("Round: " + gameCount)
   console.log("enemyWeapon: ", enemyChoice)
   console.log("playerWeapon: ", playerChoice)
@@ -262,6 +284,7 @@ function gameLogic() {
     database.ref("users/" + enemyPlayer).update({
       gameScore: enemyScore
     })
+    getResults()
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
@@ -274,6 +297,7 @@ function gameLogic() {
     database.ref("users/" + userName).update({
       gameScore: playerScore
     })
+    getResults()
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
@@ -286,6 +310,7 @@ function gameLogic() {
     database.ref("users/" + userName).update({
       gameScore: playerScore
     })
+    getResults()
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
@@ -298,6 +323,7 @@ function gameLogic() {
     database.ref("users/" + enemyPlayer).update({
       gameScore: enemyScore
     })
+    getResults()
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
@@ -310,6 +336,7 @@ function gameLogic() {
     database.ref("users/" + enemyPlayer).update({
       gameScore: enemyScore
     })
+    getResults()
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
@@ -322,6 +349,7 @@ function gameLogic() {
     database.ref("users/" + userName).update({
       gameScore: playerScore
     })
+    getResults()
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
