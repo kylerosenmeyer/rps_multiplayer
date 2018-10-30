@@ -56,7 +56,31 @@ $("#nameInput").keyup( function() {
     database.ref("users/" + userName).set({
       userName: userName,
       rpsChoice: rpsChoice,
-      playerReady: playerReady
+      playerReady: playerReady,
+      gameScore: 0
+    })
+
+    database.ref("users/" + userName).once("value", function(snap) {
+
+      $("#yourPlayer").prepend(snap.val().userName)
+      var refreshBtn = "<button class=\"refresh\">Refresh List</button>"
+      $("#opponentList").prepend(refreshBtn)
+
+    })
+    //Grab the opponents from the database
+    getOpponents()
+  }
+})
+//This is the same code to run the 2nd step if the user clicks "next" instead of hitting enter
+$(".next").click( function() {
+  userName = $("#nameInput").val().trim()
+  
+    //This is the user Creation
+    database.ref("users/" + userName).set({
+      userName: userName,
+      rpsChoice: rpsChoice,
+      playerReady: playerReady,
+      gameScore: 0
     })
 
     database.ref("users/" + userName).once("value", function(snap) {
@@ -68,17 +92,19 @@ $("#nameInput").keyup( function() {
     })
 
     getOpponents()
-  }
 })
 
+//Clicking the refresh button regenerates the opponent list
 $("body").on("click", ".refresh", function() {
   getOpponents()
 })
 
+
+//This is the function that grabs the opponents from the database and creates a button for each one.
 function getOpponents() {
 
   $(".chooseOpponent").detach()
-  
+
   database.ref("users/").once("value", function(snap) {
 
     snap.forEach(function(child) {
@@ -113,11 +139,11 @@ $("body").on("click", ".chooseOpponent", function() {
 
 })
 
+//*This is the function that resets a player after each game round.
 function resetChoice() {
   database.ref("users/" + userName).update({
     rpsChoice: "",
     playerReady: false
-
   })
 
   playerChoice = ""
@@ -126,6 +152,7 @@ function resetChoice() {
   console.log("ready for next round")
 }
 
+//*Game Logic is the main brain of the game. This runs after all conditions for play have been verified.
 function gameLogic() {
   
   console.log("Round: " + gameCount)
@@ -134,6 +161,10 @@ function gameLogic() {
 
   if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Paper" ) ) {
     enemyScore++
+    //update gameScore in the Database
+    database.ref("users/" + enemyPlayer).update({
+      gameScore: enemyScore
+    })
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
@@ -141,6 +172,10 @@ function gameLogic() {
     $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Scissors") ) {
     playerScore++
+    //update gameScore in the Database
+    database.ref("users/" + userName).update({
+      gameScore: playerScore
+    })
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
@@ -148,6 +183,10 @@ function gameLogic() {
     $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Rock" ) ) {
     playerScore++
+    //update gameScore in the Database
+    database.ref("users/" + userName).update({
+      gameScore: playerScore
+    })
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
@@ -155,6 +194,10 @@ function gameLogic() {
     $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Scissors") ) {
     enemyScore++
+    //update gameScore in the Database
+    database.ref("users/" + enemyPlayer).update({
+      gameScore: enemyScore
+    })
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
@@ -162,6 +205,10 @@ function gameLogic() {
     $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Rock" ) ) {
     enemyScore++
+    //update gameScore in the Database
+    database.ref("users/" + enemyPlayer).update({
+      gameScore: enemyScore
+    })
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
@@ -169,6 +216,10 @@ function gameLogic() {
     $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Paper" ) ) {
     playerScore++
+    //update gameScore in the Database
+    database.ref("users/" + userName).update({
+      gameScore: playerScore
+    })
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
@@ -187,7 +238,8 @@ function gameLogic() {
     $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   }
 }
-  
+
+//*This is the function records the user's RPS choice into the database.
 function playRPS() {
 
   console.log("lets play!")
@@ -201,6 +253,8 @@ function playRPS() {
     })
   })
 }
+
+//*This is the functino that records the player submission, and sets the player to be ready.
 
 $("body").on("click", "#submitRPS", function() {
 
@@ -226,6 +280,7 @@ $("body").on("click", "#submitRPS", function() {
   })
 })
 
+//*This is the function that checks whether both the player and the opponent have submitted and are ready.
 $("body").on("click", "#play", function() {
 
   database.ref("users/" + enemyPlayer).once("value", function(snap) {
@@ -267,6 +322,42 @@ $("body").on("click", "#play", function() {
   })
 })
 
+database.ref("users/" + enemyPlayer).on("child_changed", function(snap) {
+
+  if ( Number.isInteger( snap.val() ) ) {
+    console.log("number passed!")
+    if ( gameCount < 6 ) {
+
+      console.log("run player condition: ")
+      console.log("playcheck playerChoice: ", playerChoice)
+      console.log("playcheck enemyChoice: ", enemyChoice)
+      console.log("playcheck playerReady: ", playerReady)
+      console.log("playcheck enemyReady: ", enemyReady)
+  
+    
+      if ( ( playerReady == true ) && ( enemyReady == true ) ) {
+  
+        gameCount++
+        gameLogic()
+  
+      } else if ( ( playerReady == false ) && ( enemyReady == true ) ) {
+        console.log("game not ready")
+        $("#notification").text(enemyPlayer + " is waiting on you to select Rock, Paper, or Scissors.")
+      } else if ( ( enemyReady == false ) && ( playerReady == true ) ) {
+        console.log("game not ready")
+        $("#notification").text("Waiting on " + enemyPlayer + ".")
+      } else {
+        console.log("game not ready")
+        $("#notification").text("Select Rock, Paper, or Scissors.")
+      }
+      
+    } else {
+      console.log("game over!")
+    }
+  } else {
+    console.log("number failed")
+  }
+})
   
 
 
