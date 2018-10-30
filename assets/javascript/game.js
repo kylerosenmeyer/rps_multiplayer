@@ -283,78 +283,85 @@ function gameLogic() {
     //update gameScore in the Database
     database.ref("users/" + enemyPlayer).update({
       gameScore: enemyScore
-    })
-    getResults()
+    }).then( function() {
+      getResults()
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
     $("#notification").text(enemyPlayer + "\'s Paper beats " + userName + "\'s Rock!")
     $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
+    })
   } else if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Scissors") ) {
 
     playerScore++
     //update gameScore in the Database
     database.ref("users/" + userName).update({
       gameScore: playerScore
+    }).then( function() {
+      getResults()
+      console.log("enemyScore: ", enemyScore)
+      console.log("playerScore: ", playerScore)
+      resetChoice()
+      $("#notification").text(userName + "\'s Rock beats " + enemyPlayer + "\'s Scissors!")
+      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
     })
-    getResults()
-    console.log("enemyScore: ", enemyScore)
-    console.log("playerScore: ", playerScore)
-    resetChoice()
-    $("#notification").text(userName + "\'s Rock beats " + enemyPlayer + "\'s Scissors!")
-    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Rock" ) ) {
 
     playerScore++
     //update gameScore in the Database
     database.ref("users/" + userName).update({
       gameScore: playerScore
-    })
-    getResults()
+    }).then( function() {
+      getResults()
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
     $("#notification").text(userName + "\'s Paper beats " + enemyPlayer + "\'s Rock!")
     $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
+    })
   } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Scissors") ) {
 
     enemyScore++
     //update gameScore in the Database
     database.ref("users/" + enemyPlayer).update({
       gameScore: enemyScore
+    }).then( function() {
+      getResults()
+      console.log("enemyScore: ", enemyScore)
+      console.log("playerScore: ", playerScore)
+      resetChoice()
+      $("#notification").text(enemyPlayer + "\'s Scissors beats " + userName + "\'s Paper!")
+      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
     })
-    getResults()
-    console.log("enemyScore: ", enemyScore)
-    console.log("playerScore: ", playerScore)
-    resetChoice()
-    $("#notification").text(enemyPlayer + "\'s Scissors beats " + userName + "\'s Paper!")
-    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Rock" ) ) {
 
     enemyScore++
     //update gameScore in the Database
     database.ref("users/" + enemyPlayer).update({
       gameScore: enemyScore
+    }).then( function() {
+      getResults()
+      console.log("enemyScore: ", enemyScore)
+      console.log("playerScore: ", playerScore)
+      resetChoice()
+      $("#notification").text(enemyPlayer + "\'s Rock beats " + userName + "\'s Scissors!")
+      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
     })
-    getResults()
-    console.log("enemyScore: ", enemyScore)
-    console.log("playerScore: ", playerScore)
-    resetChoice()
-    $("#notification").text(enemyPlayer + "\'s Rock beats " + userName + "\'s Scissors!")
-    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Paper" ) ) {
 
     playerScore++
     //update gameScore in the Database
     database.ref("users/" + userName).update({
       gameScore: playerScore
+    }).then( function() {
+      getResults()
+      console.log("enemyScore: ", enemyScore)
+      console.log("playerScore: ", playerScore)
+      resetChoice()
+      $("#notification").text(userName + "\'s Scissors beats " + enemyPlayer + "\'s Paper!")
+      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
     })
-    getResults()
-    console.log("enemyScore: ", enemyScore)
-    console.log("playerScore: ", playerScore)
-    resetChoice()
-    $("#notification").text(userName + "\'s Scissors beats " + enemyPlayer + "\'s Paper!")
-    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
+    
   } else if ( playerChoice === enemyChoice ) {
 
     console.log("Draw!")
@@ -379,76 +386,82 @@ database.ref("users/" + enemyPlayer).on("child_changed", function(snap) {
   if ( ( pushedPlaycheck == true ) && ( pushedPlay == false ) ) {
     console.log("pushPlay check passed!")
 
-    function getResults() {
-      database.ref("users/" + userName).once("value", function(snap) {
-        playerChoice = snap.val().rpsChoice
-        playerScore = snap.val().gameScore
-      })
+    setTimeout( function() {
+
+      function getResults() {
+        database.ref("users/" + userName).once("value", function(snap) {
+          playerChoice = snap.val().rpsChoice
+          playerScore = snap.val().gameScore
+        })
+    
+        database.ref("users/" + enemyPlayer).once("value", function(snap) {
+          enemyChoice = snap.val().rpsChoice
+          enemyScore = snap.val().gameScore
+        })
+      }
   
-      database.ref("users/" + enemyPlayer).once("value", function(snap) {
-        enemyChoice = snap.val().rpsChoice
-        enemyScore = snap.val().gameScore
-      })
-    }
+      getResults()
+  
+      if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Paper" ) ) {
+  
+        console.log("enemyScore: ", enemyScore)
+        console.log("playerScore: ", playerScore)
+        resetChoice()
+        $("#notification").text(enemyPlayer + "\'s Paper beats " + userName + "\'s Rock!")
+        $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
+      } else if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Scissors") ) {
+  
+        console.log("enemyScore: ", enemyScore)
+        console.log("playerScore: ", playerScore)
+        resetChoice()
+        $("#notification").text(userName + "\'s Rock beats " + enemyPlayer + "\'s Scissors!")
+        $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
+      } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Rock" ) ) {
+  
+        console.log("enemyScore: ", enemyScore)
+        console.log("playerScore: ", playerScore)
+        resetChoice()
+        $("#notification").text(userName + "\'s Paper beats " + enemyPlayer + "\'s Rock!")
+        $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
+      } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Scissors") ) {
+  
+        console.log("enemyScore: ", enemyScore)
+        console.log("playerScore: ", playerScore)
+        resetChoice()
+        $("#notification").text(enemyPlayer + "\'s Scissors beats " + userName + "\'s Paper!")
+        $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
+      } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Rock" ) ) {
+  
+        console.log("enemyScore: ", enemyScore)
+        console.log("playerScore: ", playerScore)
+        resetChoice()
+        $("#notification").text(enemyPlayer + "\'s Rock beats " + userName + "\'s Scissors!")
+        $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
+      } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Paper" ) ) {
+  
+        console.log("enemyScore: ", enemyScore)
+        console.log("playerScore: ", playerScore)
+        resetChoice()
+        $("#notification").text(userName + "\'s Scissors beats " + enemyPlayer + "\'s Paper!")
+        $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
+      } else if ( playerChoice === enemyChoice ) {
+  
+        console.log("Draw!")
+        console.log("enemyScore: ", enemyScore)
+        console.log("playerScore: ", playerScore)
+        $("#notification").text(userName + "\'s " + playerChoice + " matches " + enemyPlayer + "\'s " + enemyChoice + "!")
+        $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
+        resetChoice()
+      } else {
+  
+        console.log("houston it didn't work right")
+        resetChoice()
+        $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
+      }
+      
+    }, 2000)
 
-    getResults()
-
-    if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Paper" ) ) {
-
-      console.log("enemyScore: ", enemyScore)
-      console.log("playerScore: ", playerScore)
-      resetChoice()
-      $("#notification").text(enemyPlayer + "\'s Paper beats " + userName + "\'s Rock!")
-      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
-    } else if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Scissors") ) {
-
-      console.log("enemyScore: ", enemyScore)
-      console.log("playerScore: ", playerScore)
-      resetChoice()
-      $("#notification").text(userName + "\'s Rock beats " + enemyPlayer + "\'s Scissors!")
-      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
-    } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Rock" ) ) {
-
-      console.log("enemyScore: ", enemyScore)
-      console.log("playerScore: ", playerScore)
-      resetChoice()
-      $("#notification").text(userName + "\'s Paper beats " + enemyPlayer + "\'s Rock!")
-      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
-    } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Scissors") ) {
-
-      console.log("enemyScore: ", enemyScore)
-      console.log("playerScore: ", playerScore)
-      resetChoice()
-      $("#notification").text(enemyPlayer + "\'s Scissors beats " + userName + "\'s Paper!")
-      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
-    } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Rock" ) ) {
-
-      console.log("enemyScore: ", enemyScore)
-      console.log("playerScore: ", playerScore)
-      resetChoice()
-      $("#notification").text(enemyPlayer + "\'s Rock beats " + userName + "\'s Scissors!")
-      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
-    } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Paper" ) ) {
-
-      console.log("enemyScore: ", enemyScore)
-      console.log("playerScore: ", playerScore)
-      resetChoice()
-      $("#notification").text(userName + "\'s Scissors beats " + enemyPlayer + "\'s Paper!")
-      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
-    } else if ( playerChoice === enemyChoice ) {
-
-      console.log("Draw!")
-      console.log("enemyScore: ", enemyScore)
-      console.log("playerScore: ", playerScore)
-      $("#notification").text(userName + "\'s " + playerChoice + " matches " + enemyPlayer + "\'s " + enemyChoice + "!")
-      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
-      resetChoice()
-    } else {
-
-      console.log("houston it didn't work right")
-      resetChoice()
-      $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
-    }
+    
   } 
 
 })
