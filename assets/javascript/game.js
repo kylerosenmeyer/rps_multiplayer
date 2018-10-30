@@ -378,14 +378,20 @@ database.ref("users/" + enemyPlayer).on("child_changed", function(snap) {
  
   if ( ( pushedPlaycheck == true ) && ( pushedPlay == false ) ) {
     console.log("pushPlay check passed!")
-    
-    database.ref("users/" + enemyPlayer).once("value", function(snap) {
-      enemyChoice = snap.val().rpsChoice
-    })
 
-    database.ref("users/" + userName).once("value", function(snap) {
-      playerChoice = snap.val().rpsChoice
-    })
+    function getResults() {
+      database.ref("users/" + userName).once("value", function(snap) {
+        playerChoice = snap.val().rpsChoice
+        playerScore = snap.val().gameScore
+      })
+  
+      database.ref("users/" + enemyPlayer).once("value", function(snap) {
+        enemyChoice = snap.val().rpsChoice
+        enemyScore = snap.val().gameScore
+      })
+    }
+
+    getResults()
 
     if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Paper" ) ) {
 
