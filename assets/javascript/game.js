@@ -59,29 +59,40 @@ $("#nameInput").keyup( function() {
       playerReady: playerReady
     })
 
-    database.ref("users/").once("value", function(snap) {
-
-      snap.forEach(function(child) {
-
-        var opponent = child.val().userName,
-            oppAdd = "<button class=\"chooseOpponent\" data-name=\"" + opponent + "\">" + opponent + "</button>"
-
-        if ( opponent !== userName) {
-          console.log("list of opponents: ", opponent)
-          $("#opponentList").prepend(oppAdd)
-        }
-        
-
-      })
-    })
-
     database.ref("users/" + userName).once("value", function(snap) {
 
       $("#yourPlayer").prepend(snap.val().userName)
+      var refreshBtn = "<button class=\"refresh\">Refresh List</button>"
+      $("#opponentList").prepend(refreshBtn)
 
     })
+
+    getOpponents()
   }
 })
+
+$("body").on("click", ".refresh", function() {
+  getOpponents()
+})
+
+function getOpponents() {
+
+  $(".chooseOpponent").detach()
+  
+  database.ref("users/").once("value", function(snap) {
+
+    snap.forEach(function(child) {
+      
+      var opponent = child.val().userName,
+          oppAdd = "<button class=\"chooseOpponent\" data-name=\"" + opponent + "\">" + opponent + "</button>"
+
+      if ( opponent !== userName) {
+        console.log("list of opponents: ", opponent)
+        $("#opponentList").append(oppAdd)
+      }
+    })
+  })
+}
 
 
 
@@ -95,7 +106,8 @@ $("body").on("click", ".chooseOpponent", function() {
   $("#player1box").prepend("<button class=\"chooseRPS\" data-name=\"Rock\" id=\"rock\"> Rock </button>")
   $("#player1box").prepend("<button class=\"chooseRPS\" data-name=\"Paper\"  id=\"rock\"> Paper </button>")
   $("#player1box").prepend("<button class=\"chooseRPS\" data-name=\"Scissors\"  id=\"rock\"> Scissors </button>")
-  $("#player1box").prepend("<button class=\"playRPS\" data-name=\"Play\"  id=\"play\"> Play! </button>")
+  $("#player2box").prepend("<button class=\"playRPS\" data-name=\"Submit\"  id=\"submitRPS\"> Submit Your Choice </button>")
+  $("#player2box").prepend("<button class=\"playRPS\" data-name=\"Play\"  id=\"play\"> Play! </button>")
 
   playRPS()
 
@@ -108,10 +120,10 @@ function resetChoice() {
 
   })
 
-  database.ref("users/" + enemyPlayer).update({
-    rpsChoice: "",
-    playerReady: false
-  })
+  playerChoice = ""
+  playerReady = ""
+  console.log("player reset complete")
+  console.log("ready for next round")
 }
 
 function gameLogic() {
@@ -125,36 +137,54 @@ function gameLogic() {
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
+    $("#notification").text(enemyPlayer + "\'s Paper beats " + userName + "\'s Rock!")
+    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Scissors") ) {
     playerScore++
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
+    $("#notification").text(userName + "\'s Rock beats " + enemyPlayer + "\'s Scissors!")
+    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Rock" ) ) {
     playerScore++
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
+    $("#notification").text(userName + "\'s Paper beats " + enemyPlayer + "\'s Rock!")
+    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Scissors") ) {
     enemyScore++
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
+    $("#notification").text(enemyPlayer + "\'s Scissors beats " + userName + "\'s Paper!")
+    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Rock" ) ) {
     enemyScore++
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
+    $("#notification").text(enemyPlayer + "\'s Rock beats " + userName + "\'s Scissors!")
+    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Paper" ) ) {
     playerScore++
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
     resetChoice()
+    $("#notification").text(userName + "\'s Scissors beats " + enemyPlayer + "\'s Paper!")
+    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   } else if ( playerChoice === enemyChoice ) {
     console.log("Draw!")
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
+    $("#notification").text(userName + "\'s " + playerChoice + " matches " + enemyPlayer + "\'s " + enemyChoice + "!")
+    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
     resetChoice()
+  } else {
+    console.log("houston it didn't work right")
+    resetChoice()
+    $("#gameScore").html(userName + "\'s Score: " + playerScore + "<br>" + enemyPlayer + "\'s Score: " + enemyScore)
   }
 }
   
@@ -164,68 +194,81 @@ function playRPS() {
     
   $(".chooseRPS").click( function() {
 
-    
     playerChoice = $(this).attr("data-name")
     console.log("playerChoice: ", playerChoice)
     database.ref("users/" + userName).update({
       rpsChoice: playerChoice
     })
-
-    
   })
 }
 
-$("body").on("click", "#play", function() {
+$("body").on("click", "#submitRPS", function() {
 
-  //This is the database listening section.
   database.ref("users/" + userName).once("value", function(snap) {
 
     var playerCheck = snap.val().playerReady
     console.log("playerCheck: ", playerCheck)
 
-    if ( playerCheck == false ) {
+    if ( ( playerCheck == false ) && ( playerChoice !== "" ) ) {
 
       database.ref("users/" + userName).update({
         playerReady: true
       })
     }
-  }).then( function(snap) {
-
-    playerReady = snap.val().playerReady
-    console.log("playerReady? ", playerReady)
-
   }).then( function() {
 
-    database.ref("users/" + enemyPlayer).once("value", function(snap) {
+    database.ref("users/" + userName).once("value", function(snap) {
 
-      enemyReady = snap.val().playerReady
-      console.log("enemyReady? ", enemyReady)
+      playerReady = snap.val().playerReady
+      console.log("playerReady? ", playerReady)
+  
     })
+  })
+})
 
+$("body").on("click", "#play", function() {
+
+  database.ref("users/" + enemyPlayer).once("value", function(snap) {
+
+    enemyReady = snap.val().playerReady
+    enemyChoice = snap.val().rpsChoice
+    console.log("enemyReady? ", enemyReady)
+    console.log("enemychoiceGrab: ", enemyChoice)
   }).then( function() {
 
     if ( gameCount < 6 ) {
 
       console.log("run player condition: ")
-      console.log("playerChoice == ", playerChoice)
-      console.log("enemyChoice == ", enemyChoice)
-
+      console.log("playcheck playerChoice: ", playerChoice)
+      console.log("playcheck enemyChoice: ", enemyChoice)
+      console.log("playcheck playerReady: ", playerReady)
+      console.log("playcheck enemyReady: ", enemyReady)
+  
+    
       if ( ( playerReady == true ) && ( enemyReady == true ) ) {
   
         gameCount++
         gameLogic()
   
+      } else if ( ( playerReady == false ) && ( enemyReady == true ) ) {
+        console.log("game not ready")
+        $("#notification").text(enemyPlayer + " is waiting on you to select Rock, Paper, or Scissors.")
+      } else if ( ( enemyReady == false ) && ( playerReady == true ) ) {
+        console.log("game not ready")
+        $("#notification").text("Waiting on " + enemyPlayer + ".")
       } else {
         console.log("game not ready")
+        $("#notification").text("Select Rock, Paper, or Scissors.")
       }
-  
+      
     } else {
       console.log("game over!")
     }
-
   })
-  
 })
+
+  
+
 
 
 
