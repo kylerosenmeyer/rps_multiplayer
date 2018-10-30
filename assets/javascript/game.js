@@ -87,7 +87,6 @@ $("#nameInput").keyup( function() {
 
 $("body").on("click", ".chooseOpponent", function() {
 
-  console.log(this)
   enemyPlayer = $(this).attr("data-name")
   console.log("enemyPlayer: ", enemyPlayer)
 
@@ -118,37 +117,44 @@ function resetChoice() {
 function gameLogic() {
   
   console.log("Round: " + gameCount)
-  console.log("enemyChoice: ", enemyChoice)
-  console.log("playerChoice: ", playerChoice)
+  console.log("enemyWeapon: ", enemyChoice)
+  console.log("playerWeapon: ", playerChoice)
 
   if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Paper" ) ) {
     enemyScore++
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
+    resetChoice()
   } else if ( ( playerChoice === "Rock" ) && ( enemyChoice === "Scissors") ) {
     playerScore++
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
+    resetChoice()
   } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Rock" ) ) {
     playerScore++
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
+    resetChoice()
   } else if ( ( playerChoice === "Paper" ) && ( enemyChoice === "Scissors") ) {
     enemyScore++
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
+    resetChoice()
   } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Rock" ) ) {
     enemyScore++
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
+    resetChoice()
   } else if ( ( playerChoice === "Scissors" ) && ( enemyChoice === "Paper" ) ) {
     playerScore++
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
+    resetChoice()
   } else if ( playerChoice === enemyChoice ) {
     console.log("Draw!")
     console.log("enemyScore: ", enemyScore)
     console.log("playerScore: ", playerScore)
+    resetChoice()
   }
 }
   
@@ -167,13 +173,6 @@ function playRPS() {
 
     
   })
-
-  database.ref("users/" + enemyPlayer).on("child_changed", function(snap) {
-
-    enemyChoice = snap.val()
-    console.log("enemyChoice: ", snap.val())
-  
-  })
 }
 
 $("body").on("click", "#play", function() {
@@ -182,6 +181,7 @@ $("body").on("click", "#play", function() {
   database.ref("users/" + userName).once("value", function(snap) {
 
     var playerCheck = snap.val().playerReady
+    console.log("playerCheck: ", playerCheck)
 
     if ( playerCheck == false ) {
 
@@ -189,34 +189,42 @@ $("body").on("click", "#play", function() {
         playerReady: true
       })
     }
-  })
+  }).then( function(snap) {
 
-  database.ref("users/" + userName).once("value", function(snap) {
-
-    console.log("playerReady? ", snap.val().playerReady)
     playerReady = snap.val().playerReady
-  })
+    console.log("playerReady? ", playerReady)
 
-  database.ref("users/" + enemyPlayer).once("value", function(snap) {
+  }).then( function() {
 
-    console.log("enemyReady? ", snap.val().playerReady)
-    enemyReady = snap.val().playerReady
-  })
+    database.ref("users/" + enemyPlayer).once("value", function(snap) {
 
-  if ( gameCount < 6 ) {
+      enemyReady = snap.val().playerReady
+      console.log("enemyReady? ", enemyReady)
+    })
 
-    if ( ( playerReady == true ) && ( enemyReady == true ) ) {
+  }).then( function() {
 
-      gameCount++
-      gameLogic()
-      resetChoice()
+    if ( gameCount < 6 ) {
+
+      console.log("run player condition: ")
+      console.log("playerChoice == ", playerChoice)
+      console.log("enemyChoice == ", enemyChoice)
+
+      if ( ( playerReady == true ) && ( enemyReady == true ) ) {
+  
+        gameCount++
+        gameLogic()
+  
+      } else {
+        console.log("game not ready")
+      }
+  
     } else {
-      console.log("game not ready")
+      console.log("game over!")
     }
 
-  } else {
-    console.log("game over!")
-  }
+  })
+  
 })
 
 
