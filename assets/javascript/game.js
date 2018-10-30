@@ -156,58 +156,68 @@ function playRPS() {
 
   console.log("lets play!")
     
-    $(".chooseRPS").click( function() {
+  $(".chooseRPS").click( function() {
 
-      
-      playerChoice = $(this).attr("data-name")
-      console.log("playerChoice: ", playerChoice)
-      database.ref("users/" + userName).update({
-        rpsChoice: playerChoice
-      })
-    })
-
-    database.ref("users/" + enemyPlayer).on("child_changed", function(snap) {
-
-      enemyChoice = snap.val()
-      console.log("eChoice: ", snap.val())
     
+    playerChoice = $(this).attr("data-name")
+    console.log("playerChoice: ", playerChoice)
+    database.ref("users/" + userName).update({
+      rpsChoice: playerChoice
     })
 
-    $("body").on("click", "#play", function() {
+    
+  })
+
+  database.ref("users/" + enemyPlayer).on("child_changed", function(snap) {
+
+    enemyChoice = snap.val()
+    console.log("enemyChoice: ", snap.val())
+  
+  })
+}
+
+$("body").on("click", "#play", function() {
+
+  //This is the database listening section.
+  database.ref("users/" + userName).once("value", function(snap) {
+
+    var playerCheck = snap.val().playerReady
+
+    if ( playerCheck == false ) {
 
       database.ref("users/" + userName).update({
         playerReady: true
       })
+    }
+  })
 
-      database.ref("users/" + userName).once("value", function(snap) {
+  database.ref("users/" + userName).once("value", function(snap) {
 
-        console.log(snap.val().playerReady)
-        playerReady = snap.val().playerReady
-      })
+    console.log("playerReady? ", snap.val().playerReady)
+    playerReady = snap.val().playerReady
+  })
 
-      database.ref("users/" + enemyPlayer).once("value", function(snap) {
+  database.ref("users/" + enemyPlayer).once("value", function(snap) {
 
-        console.log(snap.val().playerReady)
-        enemyReady = snap.val().playerReady
-      })
+    console.log("enemyReady? ", snap.val().playerReady)
+    enemyReady = snap.val().playerReady
+  })
 
-      if ( gameCount < 6 ) {
+  if ( gameCount < 6 ) {
 
-        if ( ( playerReady == true ) && ( enemyReady == true ) ) {
-          
-          gameCount++
-          gameLogic()
-          resetChoice()
-        } else {
-          console.log("game not ready")
-        }
+    if ( ( playerReady == true ) && ( enemyReady == true ) ) {
 
-      } else {
-        console.log("game over!")
-      }
-      
-    })
+      gameCount++
+      gameLogic()
+      resetChoice()
+    } else {
+      console.log("game not ready")
+    }
+
+  } else {
+    console.log("game over!")
   }
+})
 
 
 
