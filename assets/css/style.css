@@ -1,6 +1,7 @@
 body {
     text-align: center;
     font-family: 'Anton', sans-serif;
+    background-image: url("../images/linedpaper_@2x.png")
 }
 
 .jumbotron, .jumbotron-fluid {
@@ -8,12 +9,12 @@ body {
 }
 
 .col-6, .col-4, .col-3 {
-    margin: 5% auto;
-    border: 2px solid darkgrey;
+    margin: 2% auto;
+    /* border: 2px solid darkgrey; */
 }
 
 .player, .launch, .padding {
-    padding: 100px;
+    padding: 10px 30px;
 }
 
 .chooseOpponent {
